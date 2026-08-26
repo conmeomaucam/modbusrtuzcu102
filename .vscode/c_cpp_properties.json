@@ -1,0 +1,20 @@
+{
+  "configurations": [
+    {
+      "name": "Linux PetaLinux",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/components/plnx_workspace/device-tree/device-tree/**",
+        "${workspaceFolder}/project-spec/meta-user/**"
+      ],
+      "defines": [
+        "__GNUC__"
+      ],
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "c11",
+      "cppStandard": "gnu11",
+      "intelliSenseMode": "linux-gcc-x64"
+    }
+  ],
+  "version": 4
+}

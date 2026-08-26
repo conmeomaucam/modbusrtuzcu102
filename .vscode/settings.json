@@ -1,0 +1,9 @@
+{
+  "C_Cpp.workspaceParsingPriority": "high",
+  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.maxSymbolSearchResults": 5000,
+  "files.associations": {
+    "*.c": "c",
+    "*.h": "c"
+  }
+}
