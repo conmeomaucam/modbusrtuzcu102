@@ -23,8 +23,9 @@ SRC_URI = "file://main.c \
 S = "${WORKDIR}"
 
 do_compile() {
-	oe_runmake
+	oe_runmake LDFLAGS="${LDFLAGS}"
 }
+
 
 do_install() {
 	install -d ${D}${bindir}
