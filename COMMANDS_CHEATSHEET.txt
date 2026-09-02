@@ -1,0 +1,82 @@
+==============================================================================
+   BẢNG TRA CỨU LỆNH NHANH (PETALINUX + LINUX_APP + QEMU + GIT + SOCAT)
+==============================================================================
+
+------------------------------------------------------------------------------
+1. BIÊN DỊCH VÀ KIỂM THỬ LINUX_APP (ĐẢO DEV NHANH)
+------------------------------------------------------------------------------
+# Chuyển tới thư mục linux_app
+cd /home/cong/linux_app
+
+# Biên dịch chạy thử trực tiếp trên PC (Host x86_64)
+make clean && make
+
+# Chạy thử binary trên PC
+./build/linux_app
+
+# Biên dịch Cross-Compile cho ARM Cortex-A53 (64-bit)
+make clean && make CROSS_COMPILE=aarch64-linux-gnu-
+
+
+------------------------------------------------------------------------------
+2. ĐÓNG GÓI VÀ BUILD TRONG PETALINUX PROJECT (OPENAMP_MODBUSRTU)
+------------------------------------------------------------------------------
+# Chuyển tới thư mục PetaLinux project
+cd /home/cong/openamp_modbusrtu
+
+# Tạo Yocto Recipe mới cho ứng dụng C (chỉ chạy 1 lần đầu)
+petalinux-create -t apps --template c --name linux-app --enable
+
+# Clean cache và build riêng ứng dụng linux-app
+petalinux-build -c linux-app -x cleansstate
+petalinux-build -c linux-app
+
+# Build toàn bộ PetaLinux OS Image (tạo file thẻ nhớ ảo sdimage.wic)
+petalinux-build
+
+
+------------------------------------------------------------------------------
+3. BOOT QEMU VÀ THỬ NGHIỆM TRÊN CORTEX-A53 / R5
+------------------------------------------------------------------------------
+# Boot QEMU PetaLinux Zynq MPSoC
+petalinux-boot --qemu --kernel
+
+# (Bên trong Linux QEMU Shell - đăng nhập root / root)
+# Nạp Cortex-R5 Modbus Master Firmware qua remoteproc:
+echo r5_firmware.elf > /sys/class/remoteproc/remoteproc0/firmware
+echo start > /sys/class/remoteproc/remoteproc0/state
+
+# Kiểm tra kênh phần cứng OpenAMP xuất hiện:
+ls -l /dev/rpmsg0
+
+# Khởi chạy ứng dụng linux_app thật trên A53:
+linux_app
+
+
+------------------------------------------------------------------------------
+4. CÁC LỆNH DÙNG SOCAT MÔ PHỎNG SỢI DÂY RS485 ẢO
+------------------------------------------------------------------------------
+# Nối 2 cổng Serial PTY ảo với tốc độ Baudrate 115200:
+socat /dev/pts/1,raw,echo=0,b115200 /dev/pts/2,raw,echo=0,b115200
+
+# Chạy công cụ C CLI mô phỏng STM32 Modbus Slave trên Host PC:
+./diagslave -m rtu -a 1 -b 115200 -p /dev/pts/2
+
+
+------------------------------------------------------------------------------
+5. QUẢN LÝ MÃ NGUỒN GIT & PUSH LÊN GITHUB
+------------------------------------------------------------------------------
+# Kiểm tra trạng thái và các file đã sửa
+git status
+
+# Add tất cả thay đổi
+git add .
+
+# Tạo commit
+git commit -m "feat: update linux_app module implementation"
+
+# Push code lên GitHub (Nhánh linux-app)
+git push origin main:linux-app
+
+# Đổi remote URL sang SSH
+git remote set-url origin git@github.com:conmeomaucam/modbusrtuzcu102.git

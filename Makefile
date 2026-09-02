@@ -6,18 +6,23 @@
 # ==============================================================================
 
 # Hỗ trợ Cross-Compilation: gõ `make CROSS_COMPILE=aarch64-linux-gnu-` khi build cho ARM
-CROSS_COMPILE ?=
-CC            := $(CROSS_COMPILE)gcc
+ifneq ($(CROSS_COMPILE),)
+    CC := $(CROSS_COMPILE)gcc
+else
+    CC ?= gcc
+endif
+
 
 # Thư mục chứa tất cả các file rác .o và binary build
 BUILD_DIR     := build
 
 # Cờ biên dịch C chuẩn C99, bật tất cả cảnh báo, hỗ trợ POSIX Threads và tối ưu O2
-CFLAGS        := -Wall -Wextra -std=c99 -pthread -O2 \
+CFLAGS        += -Wall -Wextra -std=c99 -pthread -O2 \
                  -Icore -Idrivers -IThreads
 
 # Cờ liên kết thư viện
-LDFLAGS       := -pthread
+LDFLAGS       += -pthread
+
 
 # Tên file thực thi đầu ra (nằm trong thư mục build/)
 TARGET        := $(BUILD_DIR)/linux_app
