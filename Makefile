@@ -9,6 +9,9 @@
 CROSS_COMPILE ?=
 CC            := $(CROSS_COMPILE)gcc
 
+# Thư mục chứa tất cả các file rác .o và binary build
+BUILD_DIR     := build
+
 # Cờ biên dịch C chuẩn C99, bật tất cả cảnh báo, hỗ trợ POSIX Threads và tối ưu O2
 CFLAGS        := -Wall -Wextra -std=c99 -pthread -O2 \
                  -Icore -Idrivers -IThreads
@@ -16,8 +19,8 @@ CFLAGS        := -Wall -Wextra -std=c99 -pthread -O2 \
 # Cờ liên kết thư viện
 LDFLAGS       := -pthread
 
-# Tên file thực thi đầu ra
-TARGET        := linux_app
+# Tên file thực thi đầu ra (nằm trong thư mục build/)
+TARGET        := $(BUILD_DIR)/linux_app
 
 # Danh sách tất cả các file nguồn C
 SRCS          := main.c \
@@ -26,27 +29,28 @@ SRCS          := main.c \
                  Threads/rpmsg.c \
                  Threads/GUI.c
 
-# Chuyển đổi tên file .c thành file .o tương ứng trong thư mục build/
-OBJS          := $(SRCS:.c=.o)
+# Chuyển đổi đường dẫn file .c thành file .o tương ứng nằm trong thư mục build/
+OBJS          := $(addprefix $(BUILD_DIR)/, $(SRCS:.c=.o))
 
 # Target mặc định khi gõ `make`
 all: $(TARGET)
 
-# Quy tắc liên kết các file .o thành file thực thi TARGET
+# Quy tắc liên kết các file .o trong build/ thành file thực thi TARGET
 $(TARGET): $(OBJS)
 	@echo "[LINK] Linking binary: $@"
 	$(CC) $(CFLAGS) $(OBJS) -o $@ $(LDFLAGS)
 	@echo "[SUCCESS] Build finished successfully: $@"
 
-# Quy tắc biên dịch từng file .c thành file .o
-%.o: %.c
-	@echo "[CC] Compiling $<"
+# Quy tắc biên dịch từng file .c thành file .o và tự động tạo thư mục con trong build/
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	@echo "[CC] Compiling $< -> $@"
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Quy tắc dọn dẹp file rác
+# Quy tắc dọn dẹp toàn bộ thư mục build/
 clean:
-	@echo "[CLEAN] Removing object files and binary..."
-	rm -f $(OBJS) $(TARGET)
+	@echo "[CLEAN] Removing build directory..."
+	rm -rf $(BUILD_DIR)
 
 # Quy tắc chạy ứng dụng trực tiếp trên PC
 run: all
