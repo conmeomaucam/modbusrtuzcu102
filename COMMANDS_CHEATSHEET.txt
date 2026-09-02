@@ -38,7 +38,7 @@ petalinux-build
 ------------------------------------------------------------------------------
 3. BOOT QEMU VÀ THỬ NGHIỆM TRÊN CORTEX-A53 / R5
 ------------------------------------------------------------------------------
-# Boot QEMU PetaLinux Zynq MPSoC
+# Boot QEMU PetaLinux Zynq MPSoC (với cờ mở cổng SSH 2222)
 petalinux-boot --qemu --kernel
 
 # (Bên trong Linux QEMU Shell - đăng nhập root / root)
@@ -54,7 +54,25 @@ linux_app
 
 
 ------------------------------------------------------------------------------
-4. CÁC LỆNH DÙNG SOCAT MÔ PHỎNG SỢI DÂY RS485 ẢO
+4. CƠ CHẾ BẮN FILE TRỰC TIẾP VÀO QEMU DÀNH CHO DEV NHANH (FAST DEV LOOP - 1 GIÂY)
+------------------------------------------------------------------------------
+# A. Bắn file binary linux_app mới trực tiếp vào QEMU đang chạy (không cần reboot/rebuild OS):
+# (Chạy trên Host PC Terminal tại /home/cong/linux_app)
+scp -P 2222 build/linux_app root@localhost:/usr/bin/linux_app
+
+# B. Reload riêng Firmware Cortex-R5 trong 0.1 giây (không cần reboot QEMU):
+# (Bên trong Linux QEMU Shell)
+echo stop > /sys/class/remoteproc/remoteproc0/state
+echo r5_firmware.elf > /sys/class/remoteproc/remoteproc0/firmware
+echo start > /sys/class/remoteproc/remoteproc0/state
+
+# C. Phân biệt TFTP vs SCP:
+# - TFTP: Dùng ở U-Boot (Chưa vào Linux) để kéo Kernel Image, Device Tree system.dtb
+# - SCP / SSH: Dùng khi Linux OS đang chạy để bắn ứng dụng linux_app / r5.elf vào QEMU
+
+
+------------------------------------------------------------------------------
+5. CÁC LỆNH DÙNG SOCAT MÔ PHỎNG SỢI DÂY RS485 ẢO
 ------------------------------------------------------------------------------
 # Nối 2 cổng Serial PTY ảo với tốc độ Baudrate 115200:
 socat /dev/pts/1,raw,echo=0,b115200 /dev/pts/2,raw,echo=0,b115200
@@ -64,7 +82,7 @@ socat /dev/pts/1,raw,echo=0,b115200 /dev/pts/2,raw,echo=0,b115200
 
 
 ------------------------------------------------------------------------------
-5. QUẢN LÝ MÃ NGUỒN GIT & PUSH LÊN GITHUB
+6. QUẢN LÝ MÃ NGUỒN GIT & PUSH LÊN GITHUB
 ------------------------------------------------------------------------------
 # Kiểm tra trạng thái và các file đã sửa
 git status
